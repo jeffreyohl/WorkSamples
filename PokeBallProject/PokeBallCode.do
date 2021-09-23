@@ -252,15 +252,15 @@ label variable DID "(Post Subsidies Dummy)*(City)"
 
 
 
-* Run the DID regression with robust standard errors.
-reg perCapitaCases  i.year i.cities DID [aweight=population],  robust
+* Run the DID regression with robust standard errors, clustered by city, since
+* cases within a city will be serially correlated over time.
+ reg perCapitaCases  i.year i.cities DID,  robust cluster(cities)
+ 
+ 
+outreg2 using ${output_dir}/PokeBallReg.doc, replace ctitle(DID Model)   keep(DID) dec(5) sdec(5) label addtext(City Fixed Effects, Yes, Year Fixed Effects, Yes) adjr2    addnote("Note: Standard errors clustered by city.")
 
  
- 
-outreg2 using ${output_dir}/PokeBallReg.doc, replace ctitle(DID Model)   keep(DID) dec(5) sdec(5) label addtext(City Fixed Effects, Yes, Year Fixed Effects, Yes) adjr2
-
- 
-* We find that the DID term is not significant at the 5% level. 
+* We find that the DID term is not significant. 
 
 * The sign on the DID coefficient
 * is positive, though - this is the sign we'd expect
@@ -294,7 +294,7 @@ outreg2 using ${output_dir}/PokeBallReg.doc, replace ctitle(DID Model)   keep(DI
 * since they are highly correlated with production.
 
 
-reg perCapitaCases perCapitaProduction i.cities i.year [aweight=population],  robust
+reg perCapitaCases perCapitaProduction i.cities i.year [aweight=population],  robust  cluster(cities) 
 
 
 
@@ -331,7 +331,7 @@ summarize perCapitaProduction
 * economically meaningful.
 
 * Now we check for heteroskedasticity to confirm our use of 
-* robust standard errors.
+* heteroskedasticity-robust standard errors.
 
 
 predict resids, residuals
@@ -371,16 +371,16 @@ graph export ${output_dir}/PredictionsVsActuals.png, replace
 
 xtset cities year
 
-reg perCapitaCases L.perCapitaProduction  i.year i.cities [aweight=population],  robust
+reg perCapitaCases L.perCapitaProduction  i.year i.cities [aweight=population],  robust  cluster(cities)
 
-reg perCapitaCases L2.perCapitaProduction i.year i.cities [aweight=population] ,  robust
+reg perCapitaCases L2.perCapitaProduction i.year i.cities [aweight=population] ,  robust  cluster(cities)
 
-reg perCapitaCases L3.perCapitaProduction i.year i.cities [aweight=population] ,  robust
+reg perCapitaCases L3.perCapitaProduction i.year i.cities [aweight=population] ,  robust  cluster(cities)
 
 * These all result in lower R^2 and lower t-statistics for per capita production,
 * so I go back to the plain model.
 
-reg perCapitaCases perCapitaProduction i.year i.cities [aweight=population] ,  robust
+reg perCapitaCases perCapitaProduction i.year i.cities [aweight=population] ,  robust  cluster(cities)
 
 outreg2 using ${output_dir}/PokeBallReg.doc, append title(PokeBall Factories' effect on Asthma) ctitle(PokeBall Production Model)  addtext(City Fixed Effects, Yes, Year Fixed Effects, Yes)    keep(perCapitaProduction) dec(5) sdec(5) adjr2 label
 
