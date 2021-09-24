@@ -143,11 +143,10 @@ egen subsidizingCity = group(lawchange)
 
 * I subtract 1 to ensure values are 0 and 1.
 replace subsidizingCity = subsidizingCity-1 
-label variable subsidizingCity "City Enacted Subsidies"
-
+label variable subsidizingCity "City Enacted Subsidies "
 drop lawchange
 
-label define Subsidies 0 "No Subsidies" 1 "Subsidies", replace
+label define Subsidies 0 "Enacted subsidies in 2007" 1 "Never enacted subsides", replace
 
 label values subsidizingCity Subsidies
 
@@ -200,7 +199,7 @@ gen perCapitaCasesSubs = perCapitaCases if subsidizingCity==1
 
 
 
-graph bar (mean)   perCapitaCases perCapitaCasesSubs , over(year )  scale(*.5) legend(label(1 "No Subsidies") label(2 "Subsidies") ) ytitle("Asthma incidence", size(large))  title("Asthma incidence, 2000-2015, by PokeBall subsidy policy")
+graph bar (mean)    perCapitaCasesSubs perCapitaCasesNoSubs , over(year )  scale(*.5) legend( label(1 "Enacted subsidies in 2007")  label(2 "Never enacted subsidies")) ytitle("Asthma incidence", size(large))  title("Asthma incidence, 2000-2015, by PokeBall subsidy policy")
 
 
 graph export ${output_dir}/BarChartAsthmaOverTime.png, replace
@@ -260,7 +259,7 @@ label variable DID "(Post-Enactment)x(City enacted subsidies)"
 reg perCapitaCases  postSubsidies subsidizingCity DID  [aweight=population],  robust cluster(cities)
  
  
-outreg2 using ${output_dir}/PokeBallReg.doc, replace ctitle(DID Model)    dec(5) sdec(5) label addtext(City Fixed Effects, No, Year Fixed Effects, No) adjr2     addnote("Note: Standard errors clustered by city.")
+outreg2 using ${output_dir}/PokeBallReg.doc, replace ctitle(DID Model)   dec(5) sdec(5) label addtext(City Fixed Effects, No, Year Fixed Effects, No) adjr2     addnote("Note: Standard errors clustered by city.")
 
  
 * We find that the DID term is not significant. 
@@ -356,7 +355,9 @@ graph export ${output_dir}/Heteroskedasticity.png, replace
 
 predict predictions
 
-graph twoway (scatter perCapitaCases perCapitaProduction )  (lfit predictions perCapitaProduction )  ,  title("Regression Predictions vs Actuals") ytitle("Asthma Incidence") legend(label(1 "Actuals") label(2 "Predictions") ) 
+ graph twoway (scatter perCapitaCases perCapitaProduction )  (lfitci predictions perCapitaProduction )  ,   title("Regression Predictions vs Actuals") ytitle("Asthma Incidence") legend(label(1 "Actuals") )
+
+
 
 save ${intermediate_dir}/mergedPokeBallData.dta, replace	  
 
