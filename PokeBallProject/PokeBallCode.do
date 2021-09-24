@@ -139,17 +139,17 @@ drop city
 * who enacted laws to subsidize PokeBall factories in 2007, and label accordingly.
 
 
-egen subsidyIndicator = group(lawchange)
+egen subsidizingCity = group(lawchange)
 
 * I subtract 1 to ensure values are 0 and 1.
-replace subsidyIndicator = subsidyIndicator-1 
-label variable subsidyIndicator "Subsidy Indicator"
+replace subsidizingCity = subsidizingCity-1 
+label variable subsidizingCity "City Enacted Subsidies"
 
 drop lawchange
 
 label define Subsidies 0 "No Subsidies" 1 "Subsidies", replace
 
-label values subsidyIndicator Subsidies
+label values subsidizingCity Subsidies
 
 
 
@@ -158,11 +158,11 @@ label values subsidyIndicator Subsidies
 
 * First, let's check correlations of the several causal variables:
 * factories, subsidy indicator, and production, and the dependent variable: cases.
-corr perCapitaProduction perCapitaCases perCapitaFactories subsidyIndicator
+corr perCapitaProduction perCapitaCases perCapitaFactories subsidizingCity
 
 * Let's also examine a scatter plot matrix 
 
-graph matrix perCapitaProduction perCapitaCases perCapitaFactories subsidyIndicator, half maxis(ylabel(none) xlabel(none))
+graph matrix perCapitaProduction perCapitaCases perCapitaFactories subsidizingCity, half maxis(ylabel(none) xlabel(none))
 
 
 graph export ${output_dir}/Scatters.png, replace
@@ -180,7 +180,7 @@ graph export ${output_dir}/Scatters.png, replace
 
 * First, were cases higher in cities where factories were subsidized?
 
-graph bar perCapitaCases, over(subsidyIndicator)  ytitle(Mean per capita incidence of Asthma)  title(Incidence of Asthma by factory subsidy policy)
+graph bar perCapitaCases, over(subsidizingCity)  ytitle(Mean per capita incidence of Asthma)  title(Incidence of Asthma by factory subsidy policy)
 
 * Yes, they were slightly higher*
 
@@ -195,8 +195,8 @@ graph export ${output_dir}/BarChartAsthma.png, replace
 * states that subsidized and those that didn't.
 
 
-gen perCapitaCasesNoSubs = perCapitaCases if subsidyIndicator==0
-gen perCapitaCasesSubs = perCapitaCases if subsidyIndicator==1
+gen perCapitaCasesNoSubs = perCapitaCases if subsidizingCity==0
+gen perCapitaCasesSubs = perCapitaCases if subsidizingCity==1
 
 
 
@@ -235,11 +235,13 @@ save ${intermediate_dir}/mergedPokeBallData.dta, replace
 
 * Generate indicator variable for years in which subsidies were present.
 gen postSubsidies = (year>=$subsidiesBegin)
+label variable postSubsidies "Post-Subsidies Enactment"
 
 * Generate interaction term between city and pre/post subsidies
-gen DID=cities*postSubsidies
-label variable DID "(Post Subsidies Dummy)*(City)"
 
+gen DID = postSubsidies*subsidizingCity
+
+label variable DID "(Post-Enactment)x(City enacted subsidies)"
 
 * The data is grouped by city - I will check if the size of each city
 * varies much, in which case, I should weight the regression by city population.
@@ -254,17 +256,20 @@ label variable DID "(Post Subsidies Dummy)*(City)"
 
 * Run the DID regression with robust standard errors, clustered by city, since
 * cases within a city will be serially correlated over time.
- reg perCapitaCases  i.year i.cities DID,  robust cluster(cities)
+
+reg perCapitaCases  postSubsidies subsidizingCity DID  [aweight=population],  robust cluster(cities)
  
  
-outreg2 using ${output_dir}/PokeBallReg.doc, replace ctitle(DID Model)   keep(DID) dec(5) sdec(5) label addtext(City Fixed Effects, Yes, Year Fixed Effects, Yes) adjr2    addnote("Note: Standard errors clustered by city.")
+outreg2 using ${output_dir}/PokeBallReg.doc, replace ctitle(DID Model)    dec(5) sdec(5) label addtext(City Fixed Effects, No, Year Fixed Effects, No) adjr2     addnote("Note: Standard errors clustered by city.")
 
  
 * We find that the DID term is not significant. 
 
 * The sign on the DID coefficient
 * is positive, though - this is the sign we'd expect
-* if subsidizing did increase asthma rates. 
+* if subsidizing did increase asthma rates. Furthermore, time periods following the
+* enactment of subsidies included higher incidences of asthma, as evidenced
+* by the significance of the "Post-Subsidies" indicator
 
 * Overall, however, this model doesn't make me confident that there's a causal 
 * effect on asthma from PokeBall factories.
