@@ -1,11 +1,11 @@
 * Jeffrey Ohl, 2021, STATA Coding sample
 
 
-* Detailed output and the assignment task can be foun on my GitHub: https://github.com/jeffreyohl/WorkSamples/tree/main/PokeBallProject
+* Detailed output and the assignment task can be found on my GitHub: https://github.com/jeffreyohl/WorkSamples/tree/main/PokeBallProject
 
 
 
-* The goal is to determine if opening PokeBall factories is causing asthma
+* The goal is to determine if PokeBall factories are causing asthma
 * in the towns sampled.
 
 *******************************************************************
