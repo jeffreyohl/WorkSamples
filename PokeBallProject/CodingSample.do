@@ -372,7 +372,7 @@ graph export ${output_dir}/PredictionsVsActuals.png, replace
 
 vif
 
-* Only the perCapitaProduction variable has a VIF > 5, and it's barely this large.
+* Only the perCapitaProduction variable and one of the city fixed effects has a VIF > 5,
 * Multicollinearity is probably not an issue in interpreting the results.
 
 
