@@ -5,7 +5,7 @@
 
 
 
-* The goal is to determine if PokeBall factories are causing asthma
+* The assignment goal is to determine if PokeBall factories are causing asthma
 * in the towns sampled.
 
 *******************************************************************
